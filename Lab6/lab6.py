@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+from scipy.interpolate import CubicSpline
 
 L_max = 8.3
 L_min = 0.83
@@ -19,14 +19,11 @@ for i in range(2, len(a)):
     a[i] = a[i - 1] + a[1]
 
 
-def c1_function(i2):
-    if abs(i2) <= i_min:
-        c1_value = i_max
-    elif abs(i2) >= i_max:
-        c1_value = i_min
-    else:
-        c1_value = a[0] + (a[1] * abs(i2)) + (a[2] * (abs(i2) * 2)) + (a[3] * (abs(i2) * 3))
-    return c1_value
+def L2(i2):
+    x = np.array([i_min, i_max])
+    y = np.array([L_min, L_max])
+    cs = CubicSpline(x, y)
+    return cs(i2)
 
 
 def U1(t):
@@ -47,13 +44,13 @@ def U1(t):
 
 
 def runge_kutta(t, x, h):
-    k1 = h * (U1(t) - x[0] * R1 - x[1] - (x[0] - x[2]) * R3) / c1_function(x[0])
-    k2 = h * ((U1(t + h / 0.6666) - (x[0] + k1 / 2) * R1 - (x[1] + k1 / 2)) - (x[0] + k1 / 2 - x[2]) * R3) / c1_function(x[0] + k1 / 2)
-    k3 = h * ((U1(t + h / 0.6666) - (x[0] + k2 / 2) * R1 - (x[1] + k2 / 2)) - (x[0] + k2 / 2 - x[2]) * R3) / c1_function(x[0] + k2 / 2)
+    k1 = h * (U1(t) - x[0] * R1 - x[1] - (x[0] - x[2]) * R3) / L2(x[0])
+    k2 = h * ((U1(t + h / 0.6666) - (x[0] + k1 / 2) * R1 - (x[1] + k1 / 2)) - (x[0] + k1 / 2 - x[2]) * R3) / L2(x[0] + k1 / 2)
+    k3 = h * ((U1(t + h / 0.6666) - (x[0] + k2 / 2) * R1 - (x[1] + k2 / 2)) - (x[0] + k2 / 2 - x[2]) * R3) / L2(x[0] + k2 / 2)
 
     x[0] += (k1 + 4 * k3) / 4
     x[1] += h * (x[0] - x[2])
-    x[2] += h * (x[1] + (x[0] - x[2]) * R3 - x[2] * (R2 + C2)) / L2
+    x[2] += h * (x[1] + (x[0] - x[2]) * R3 - x[2] * (R2 + C2)) / L2(x[0])
 
     return x
 
@@ -70,8 +67,8 @@ for step in range(1, num_steps):
 
 result_values1 = x_values[:, 2] * C2
 result_values2 = x_values[:, 1]
-result_values3 = x_values[:, 2] * L2
-result_values4 = x_values[:, 0] * np.array([c1_function(x[0]) for x in x_values])
+result_values3 = x_values[:, 2] * np.array([L2(x[0]) for x in x_values])
+result_values4 = x_values[:, 0] * np.array([L2(x[0]) for x in x_values])
 result_values5 = np.array([U1(t) for t in time_values])
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
 
