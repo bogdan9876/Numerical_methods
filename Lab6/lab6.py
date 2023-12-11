@@ -72,9 +72,6 @@ result_values4 = x_values[:, 0] * np.array([L2(x[0]) for x in x_values])
 result_values5 = np.array([U1(t) for t in time_values])
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
 
-with open("result.dat", "w") as file:
-    file.write(f"time: {str(time_values)}\n U1: {str(result_values5)}\n iL1: {str(result_values4)}\n")
-
 ax1.plot(time_values, result_values5, label='U1')
 ax1.set_ylabel('U1 Values')
 ax1.legend()
